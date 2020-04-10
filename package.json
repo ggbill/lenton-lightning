@@ -33,7 +33,7 @@
     "@types/mongodb": "^3.3.3",
     "@types/mongoose": "^5.5.18",
     "@types/node": "^12.12.7",
-    "auth0-js": "^9.11.3",
+    "auth0-js": "^9.13.2",
     "bson": "^4.0.2",
     "clsx": "^1.0.4",
     "date-fns": "^2.1.0",
