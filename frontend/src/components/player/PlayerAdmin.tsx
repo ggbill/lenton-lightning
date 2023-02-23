@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme: Theme) =>
             color: theme.palette.text.secondary,
         },
         formControl: {
-            margin: theme.spacing(1),
+            margin: '8px 0',
             minWidth: 120,
         },
         selectEmpty: {
@@ -60,6 +60,7 @@ const PlayerAdmin = (props: InputProps) => {
     const playersApi = useFetch("players");
     const seasonsApi = useFetch("seasons");
 
+    const [fullPlayerCareerStatList, setFullPlayerCareerStatList] = useState<PlayerCareerStat[]>([]);
     const [playerCareerStatList, setPlayerCareerStatList] = useState<PlayerCareerStat[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
@@ -77,7 +78,8 @@ const PlayerAdmin = (props: InputProps) => {
         setLoading(true)
         seasonsApi.get('allPlayersCareerStats')
             .then(data => {
-                setPlayerOrder("CAPS", data)
+                setFullPlayerCareerStatList(data)
+                // setPlayerOrder("CAPS")
                 setLoading(false)
             })
             .catch((err: Error) => {
@@ -124,33 +126,34 @@ const PlayerAdmin = (props: InputProps) => {
         updatePlayer(playerToDelete);
     }
 
-    const setPlayerOrder = (orderBy: string, playerCareerStatList: PlayerCareerStat[]) => {
+    // const setPlayerOrder = (orderBy: string, playerCareerStatList: PlayerCareerStat[]) => {
+    const setPlayerOrder = (orderBy: string) => {
         if (orderBy === "CAPS") {
-            let orderedList = playerCareerStatList.sort((a, b) => {
+            let orderedList = fullPlayerCareerStatList.sort((a, b) => {
                 return (a.capTotal > b.capTotal ? -1 : 1)
             })
             setPlayerCareerStatList(orderedList);
         } else if (orderBy === "NAME") {
-            let orderedList = playerCareerStatList.sort((a, b) => {
+            let orderedList = fullPlayerCareerStatList.sort((a, b) => {
                 return (`${a.player.firstName} ${a.player.surname}` < `${b.player.firstName} ${b.player.surname}` ? -1 : 1)
             })
             setPlayerCareerStatList(orderedList);
         } else if (orderBy === "GOALS") {
-            let orderedList = playerCareerStatList.sort((a, b) => {
+            let orderedList = fullPlayerCareerStatList.sort((a, b) => {
                 return (a.goalTotal > b.goalTotal ? -1 : 1)
             })
             setPlayerCareerStatList(orderedList);
         } else if (orderBy === "WIN") {
-            let orderedList = playerCareerStatList.sort((a, b) => {
+            let orderedList = fullPlayerCareerStatList.sort((a, b) => {
                 return ((a.winTotal / a.capTotal) > (b.winTotal / b.capTotal) ? -1 : 1)
-            })
+            }).filter(player => player.capTotal > 9)
             setPlayerCareerStatList(orderedList);
         }
     }
 
     const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
         setOrderBy(event.target.value as string);
-        setPlayerOrder(event.target.value as string, playerCareerStatList)
+        setPlayerOrder(event.target.value as string)
     };
 
     const clearPlayerObject = () => {
@@ -176,6 +179,11 @@ const PlayerAdmin = (props: InputProps) => {
         GetAllPlayerCareerStats();
         // eslint-disable-next-line react-hooks/exhaustive-deps       
     }, []);
+
+    React.useEffect(() => {
+        if (fullPlayerCareerStatList.length > 0) setPlayerOrder("CAPS")
+            
+    }, [fullPlayerCareerStatList]);
 
     if (loading) {
         return (
@@ -206,6 +214,9 @@ const PlayerAdmin = (props: InputProps) => {
                 </Select>
             </FormControl>
             <div className={classes.root} >
+                {orderBy === "WIN" && 
+                <span>List filtered to players with 10 or more caps.</span>
+                }
                 <Box display="flex" flexDirection="row" flexWrap="wrap" justifyContent="space-evenly">
                     {playerCareerStatList.map((item: PlayerCareerStat) => (
                         <div key={item.player._id}>
